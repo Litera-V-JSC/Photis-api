@@ -47,7 +47,10 @@ def get_receipt_group(id_list):
 
 def get_all_receipts():
 	db = get_db()
-	return db.execute("SELECT * FROM receipts").fetchall()
+	try:
+		return db.execute("SELECT * FROM receipts").fetchall()
+	except Exception as e:
+		return None
 
 
 def get_categories():

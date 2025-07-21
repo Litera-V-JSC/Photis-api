@@ -74,11 +74,14 @@ id=<id:int> - only one receipt with unique id
 def get_receipt(id):
 	if str(id) == "all":
 		receipts = db.get_all_receipts()
+		if receipts is None:
+			return jsonify({'error': f"error while loading list of all receipts from database"}), 404
 		return jsonify([dict(row) for row in receipts]), 200
-	receipt = db.get_receipt_by_id(id)
-	if receipt is None: 
-		return jsonify({'error': f"invalid id: {id}"}), 404
-	return jsonify(dict(receipt)), 200
+	else:
+		receipt = db.get_receipt_by_id(id)
+		if receipt is None: 
+			return jsonify({'error': f"invalid id: {id}"}), 404
+		return jsonify(dict(receipt)), 200
 
 
 """
@@ -99,9 +102,11 @@ def filter_receipt(start, end, category):
 @bp.route('/files/<int:id>', methods=("GET",))
 @jwt_required()
 def download(id):
-	filename = db.get_receipt_by_id(id)["file_name"]
+	receipt = db.get_receipt_by_id(id)
+	if receipt is None:
+		return jsonify({'error': 'invalid receipt id'}), 404
 	storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
-	return send_from_directory(storage_path, filename)
+	return send_from_directory(storage_path, receipt["file_name"])
 
 
 """ Get receipt categories """
@@ -116,9 +121,12 @@ def categories():
 @jwt_required()
 def report():
 	filename = "report " + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.pdf'
+	receipts = db.get_receipt_group(request.json.get("id_list", None))
+	if receipts is None:
+		return jsonify({'error': 'invalid receipt id'}), 404
 	resp = create_pdf(
 		os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'], filename),
-		db.get_receipt_group(request.json.get("id_list", None))
+		receipts
 	)
 	storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
 	return send_from_directory(storage_path, filename)
