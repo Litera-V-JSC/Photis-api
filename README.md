@@ -17,7 +17,7 @@ SECRET_KEY="your_secret_key"
 docker build -t receipt_scanner:latest . 
 ```
 
-## Run the app:
+## Run the app
 To run the app just launch docker container:
 ```
 docker run -p 8000:8000 receipt_scanner:latest
