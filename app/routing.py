@@ -58,10 +58,14 @@ def add_receipt():
 
 
 """ Delete existing receipt """
-@bp.route('/delete/<int:id>', methods=("DELETE",))
+@bp.route('/delete/<id>', methods=("DELETE",))
 @jwt_required()
 def delete_receipt(id):
-	return db.delete_receipt(id)
+	try:
+		id = int(id)
+		return db.delete_receipt(id)
+	except Exception:
+		return jsonify({'error': f"Invalid id: {id}"}), 404
 
 
 """ 
