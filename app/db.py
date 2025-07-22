@@ -8,6 +8,7 @@ import shutil
 
 
 def get_db():
+	print(current_app.config["DATABASE"])
 	if "db" not in g:
 			g.db = sqlite3.connect(
 				current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES

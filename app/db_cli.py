@@ -11,7 +11,7 @@ import shutil
 conf = config_module.Config()
 
 
-""" Make backup of databse """
+""" Make backup of database """
 def make_backup():
 	os.makedirs(os.path.join(conf.BACKUP, 'storage'), exist_ok=True)
 	timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -57,9 +57,9 @@ def generate_default_receipts(db, count=5):
 
 
 def reset_db():
-	print(os.path.realpath('database.sqlite'))
+	print(os.path.realpath(os.path.join('storage', 'database.sqlite')))
 	try:
-		os.remove(os.path.join(os.path.dirname(__file__), 'database.sqlite'))
+		os.remove(os.path.realpath(os.path.join('storage', 'database.sqlite')))
 		print('Removed previous database file')
 	except FileNotFoundError:
 		print("Creating new database file")
