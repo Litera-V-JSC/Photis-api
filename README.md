@@ -14,7 +14,7 @@ SECRET_KEY="your_secret_key"
 ```
 4. Build docker container: 
 ``` 
-docker build -t receipt_scanner:latest . 
+docker build . -t receipt_scanner:latest . 
 ```
 
 ## Run the app

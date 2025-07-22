@@ -53,11 +53,6 @@ def get_all_receipts():
 		return None
 
 
-def get_categories():
-	db = get_db()
-	return db.execute("SELECT DISTINCT category FROM receipts").fetchall()
-
-
 """ Filtering receipts by date """
 def get_filtered_receipts(start, end, category):
 	db = get_db()

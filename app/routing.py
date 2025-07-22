@@ -113,7 +113,7 @@ def download(id):
 @bp.route('/categories', methods=("GET",))
 @jwt_required()
 def categories():
-	return jsonify([dict(cat)["category"] for cat in db.get_categories()]), 200
+	return jsonify(["ГСМ топливо", "Товары", "Услуги"]), 200
 
 
 """ Generate general receipts report """
