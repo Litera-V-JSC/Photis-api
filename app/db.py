@@ -78,7 +78,6 @@ def get_filtered_receipts(start, end, category):
 
 def add_new_receipt(request):
 	data = request.get_json()
-	print(data)
 	# image data should be base64 string only
 	if not data or 'image' not in data:
 		return jsonify({'error': 'data is missing'}), 404
