@@ -22,7 +22,7 @@ def refresh_expiring_jwts(response):
 	try:
 		exp_timestamp = get_jwt()["exp"]
 		now = datetime.datetime.now(datetime.timezone.utc)
-		target_timestamp = datetime.datetime.timestamp(now + datetime.timedelta(minutes=30))
+		target_timestamp = datetime.datetime.timestamp(now + datetime.timedelta(minutes=60))
 		if target_timestamp > exp_timestamp:
 				access_token = create_access_token(identity=get_jwt_identity())
 				set_access_cookies(response, access_token)
@@ -87,20 +87,6 @@ def get_receipt(id):
 			return jsonify({'error': f"invalid id: {id}"}), 404
 		return jsonify(dict(receipt)), 200
 
-
-"""
-Get list of filtered receipts.
-start, end - date filter
-category - category filter
-"""
-@bp.route('/filter_receipt/<start>/<end>/<category>', methods=("GET",))
-@jwt_required()
-def filter_receipt(start, end, category):
-	receipts = db.get_filtered_receipts(start, end, category)
-	if receipts is None:
-		return jsonify({'error': f"invalid data, start: {start}, end: {end}, category: {category}"}), 404
-	return jsonify([dict(row) for row in receipts]), 200
-		
 
 """ Get receipt img """
 @bp.route('/files/<int:id>', methods=("GET",))

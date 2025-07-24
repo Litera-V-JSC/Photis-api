@@ -8,7 +8,6 @@ import shutil
 
 
 def get_db():
-	print(current_app.config["DATABASE"])
 	if "db" not in g:
 			g.db = sqlite3.connect(
 				current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
@@ -54,29 +53,6 @@ def get_all_receipts():
 		return None
 
 
-""" Filtering receipts by date """
-def get_filtered_receipts(start, end, category):
-	db = get_db()
-	try:
-		if start == end == "all":
-			receipts = db.execute(
-				"SELECT * FROM receipts WHERE category = ?;", (category,)
-			).fetchall()
-		elif category == 'all':
-			receipts = db.execute(
-				"SELECT * FROM receipts WHERE ? <= receipt_date AND receipt_date <= ?"
-				"ORDER BY receipt_date DESC;", (start, end)
-			).fetchall()
-		else:
-			receipts = db.execute(
-					"SELECT * FROM receipts WHERE ? <= receipt_date AND receipt_date <= ? AND category = ?"
-					"ORDER BY receipt_date DESC;", (start, end, category)
-				).fetchall()
-	except db.IntegrityError:
-		return None
-	return receipts
-
-
 def add_new_receipt(request):
 	data = request.get_json()
 	# image data should be base64 string only
@@ -108,7 +84,6 @@ def is_file_attached(id):
 	db = get_db()
 	try:	
 		receipt = dict(get_receipt_by_id(id))
-		print(receipt)
 		same_photo_receipts = db.execute(
 			"SELECT * FROM receipts WHERE file_name = ?;",
 			(receipt['file_name'],)
