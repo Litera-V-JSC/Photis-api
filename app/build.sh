@@ -1,7 +1,7 @@
 #!/bin/sh
 
 VOLUME_NAME="receipt_scanner"
-IMAGE_NAME="receipt_scanner"
+IMAGE_NAME="receipt_scanner:latest"
 
 # Generate random data and hash it with sha256
 SECRET_KEY=$(openssl rand -hex 32 | sha256sum | awk '{print $1}')
@@ -20,5 +20,5 @@ else
   docker volume create "$VOLUME_NAME"
 fi
 
-docker build . -t $IMAGE_NAME:latest
+docker build . -t $IMAGE_NAME
 echo "[+] Container build finished."
