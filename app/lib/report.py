@@ -1,31 +1,49 @@
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib import colors
-from reportlab.platypus import Table, TableStyle
-from datetime import datetime
 import os
-from lib.file_utils import clear_storage
+from datetime import datetime
 
-# Регистрация шрифта Arial
-pdfmetrics.registerFont(TTFont('Arial', os.path.join(os.path.dirname(__file__), 'fonts', 'arialmt.ttf')))
+pdfmetrics.registerFont(
+    TTFont('Arial', os.path.join(os.path.dirname(__file__), 'fonts', 'arialmt.ttf'))
+)
 
+styles = getSampleStyleSheet()
+styles.add(ParagraphStyle(name='TableHeader', fontName='Arial', fontSize=12, alignment=1))
+styles.add(ParagraphStyle(name='Cyrillic', fontName='Arial', fontSize=12))
 
-def draw_header(c, width, height):
+def convert_date_format(date: str) -> str:
+    return '.'.join(str(date).split('-')[::-1])
+
+def draw_first_page_header(canvas, doc):
+    canvas.saveState()
+    width, height = A4
     now_str = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
     date_text = f"Дата формирования отчёта: {now_str}"
-    c.setFont("Arial", 10)
-    text_width = c.stringWidth(date_text, "Arial", 10)
-    c.drawString(width - text_width - 40, height - 40, date_text)
-    c.setFont("Arial", 16)
+    canvas.setFont("Arial", 10)
+    text_width = canvas.stringWidth(date_text, "Arial", 10)
+    canvas.drawString(width - text_width - 40, height - 40, date_text)
+    canvas.setFont("Arial", 16)
     title = "Отчёт из реестра чеков"
-    title_width = c.stringWidth(title, "Arial", 16)
-    c.drawString((width - title_width) / 2, height - 80, title)
+    title_width = canvas.stringWidth(title, "Arial", 16)
+    canvas.drawString((width - title_width) / 2, height - 70, title)
+    canvas.restoreState()
 
+def draw_later_page_placeholder(canvas, doc):
+    canvas.saveState()
+    canvas.restoreState()
+
+def draw_page_number(canvas, doc):
+    canvas.saveState()
+    canvas.setFont('Arial', 9)
+    canvas.drawString(A4[0] - 50, 30, f"Страница {doc.page}")
+    canvas.restoreState()
 
 def create_table(data):
-    table = Table(data, colWidths=[100, 150, 100])
+    t = Table(data, colWidths=[100, 150, 100])
     style = TableStyle([
         ('FONTNAME', (0, 0), (-1, -1), 'Arial'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
@@ -37,56 +55,90 @@ def create_table(data):
         ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
         ('TOPPADDING', (0, 0), (-1, 0), 8),
     ])
-    table.setStyle(style)
-    return table
+    t.setStyle(style)
+    return t
 
+def create_pdf(storage_dir, file_path, raw_table_data):
+	doc = SimpleDocTemplate(file_path, pagesize=A4,
+							leftMargin=40, rightMargin=40,
+							topMargin=100, bottomMargin=60)
 
-""" Convert date format """
-def convert_date_format(date: str) -> str:
-	return '.'.join(str(date).split('-')[::-1])
-
-
-""" Creates pdf document """
-def create_pdf(file_path, raw_table_data):
-	c = canvas.Canvas(file_path, pagesize=A4)
-	width, height = A4
-
-	# Преобразуем данные и считаем суммы
+	# Prepare data rows
 	table_data = []
 	sum_values = 0.0
 	sums_list = []
 	for row in raw_table_data:
-			sum_val = float(row['sum'])
-			sums_list.append(sum_val)
-			sum_values += sum_val
-			table_data.append([convert_date_format(row['receipt_date']), row['category'], f"{sum_val:.2f}"])
+		sum_val = float(row['sum'])
+		sums_list.append(sum_val)
+		sum_values += sum_val
+		table_data.append([convert_date_format(row['receipt_date']), row['category'], f"{sum_val:.2f}"])
 
-	draw_header(c, width, height)
-	table = create_table([["Дата выдачи", "Категория", "Сумма"]] + table_data)
-	table_width, table_height = table.wrap(0, 0)
-	x = 40
-	y = height - 130 - table_height
-	table.drawOn(c, x, y)
+	data = [["Дата выдачи", "Категория", "Сумма"]] + table_data
 
+	# Create table flowable
+	table = create_table(data)
+
+	# Prepare stats text as Paragraphs
 	count_receipts = len(table_data)
 	avg_sum = sum_values / count_receipts if count_receipts else 0
 	max_sum = max(sums_list) if sums_list else 0
 	min_sum = min(sums_list) if sums_list else 0
 
-	stats_text = (
-			f"Итоговая сумма: {sum_values:,.2f}\n"
-			f"Количество чеков: {count_receipts}\n"
-			f"Средняя сумма чека: {avg_sum:,.2f}\n"
-			f"Максимальная сумма: {max_sum:,.2f}\n"
-			f"Минимальная сумма: {min_sum:,.2f}"
-	)
-	c.setFont("Arial", 12)
-	text_y = y - 60
-	for line in stats_text.split('\n'):
-			c.drawString(x, text_y, line)
-			text_y -= 18
+	stats_lines = [
+		f"Итоговая сумма: {sum_values:,.2f}",
+		f"Количество чеков: {count_receipts}",
+		f"Средняя сумма чека: {avg_sum:,.2f}",
+		f"Максимальная сумма: {max_sum:,.2f}",
+		f"Минимальная сумма: {min_sum:,.2f}",
+	]
 
-	clear_storage(extensions=['pdf'])
-	c.save()
+	story = []
+	story.append(table)
+	story.append(Spacer(1, 30))
+	for line in stats_lines:
+		p = Paragraph(line, styles["Cyrillic"])
+		story.append(p)
+
+	# --- Add all images from /storage directory ---
+	supported_extensions = ['.jpg', '.jpeg', '.png']
+	if os.path.isdir(storage_dir):
+		images = [
+			f for f in sorted(os.listdir(storage_dir))
+			if os.path.splitext(f.lower())[1] in supported_extensions
+		]
+		for img_name in images:
+			img_path = os.path.join(storage_dir, img_name)
+			try:
+				story.append(PageBreak())
+				# Fit image into A4 with margins: safe width/height for portrait A4
+				max_width, max_height = A4[0] - 80, A4[1] - 120
+				img = Image(img_path)
+				# Resize proportionally
+				img.drawWidth, img.drawHeight = _fit_image(img_path, max_width, max_height)
+				story.append(img)
+				story.append(Spacer(1, 12))
+				story.append(Paragraph(os.path.basename(img_path), styles["Cyrillic"]))
+			except Exception as e:
+				story.append(Paragraph(f"Ошибка с изображением: {img_name} ({e})", styles["Cyrillic"]))
+
+	# Build PDF with the correct page headers and numbers
+	doc.build(
+		story,
+		onFirstPage=lambda canvas, doc: (draw_first_page_header(canvas, doc), draw_page_number(canvas, doc)),
+		onLaterPages=lambda canvas, doc: (draw_later_page_placeholder(canvas, doc), draw_page_number(canvas, doc))
+	)
 	print(f"PDF report created: {file_path}")
+
+# Add proportional image resizing
+from PIL import Image as PIL_Image
+
+def _fit_image(img_path, max_width, max_height):
+    with PIL_Image.open(img_path) as im:
+        width, height = im.size
+    aspect = width / height
+    if width > max_width:
+        width, height = max_width, max_width / aspect
+    if height > max_height:
+        width, height = max_height * aspect, max_height
+    return width, height
 

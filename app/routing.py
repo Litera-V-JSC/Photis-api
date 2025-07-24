@@ -115,6 +115,7 @@ def report():
 	if receipts is None:
 		return jsonify({'error': 'invalid receipt id'}), 404
 	resp = create_pdf(
+		os.path.join(current_app.root_path, current_app.config['FILE_STORAGE']),
 		os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'], filename),
 		receipts
 	)
