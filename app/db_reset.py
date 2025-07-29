@@ -11,30 +11,15 @@ import shutil
 conf = config_module.Config()
 
 
-""" Make backup of database """
-def make_backup():
-	os.makedirs(os.path.join(conf.BACKUP, 'storage'), exist_ok=True)
-	timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-	db_backup = os.path.join(conf.BACKUP, timestamp+'.sqlite')
-	shutil.copy(os.path.realpath(conf.DATABASE), db_backup)
-	storage = conf.FILE_STORAGE
-	for item_name in os.listdir(storage):
-		item_path = os.path.join(storage, item_name)
-		if os.path.isfile(item_path):
-			shutil.copy(item_path, os.path.join(conf.BACKUP, "storage", item_name))
-			print(f"Copied file: {item_path}")
-	print(f"Backup created: {db_backup}")
-
-
-def generate_default_users(db):
-	users = [{"username": f"u{i}", "password": generate_password_hash(f"p{i}")} for i in range(4)]
-	for user in users:
+def generate_default_users(db, count=4):
+	users = [{"username": f"u{i}", "password": generate_password_hash(f"p{i}")} for i in range(count)]
+	for req in users:
 		db.execute(
-					"INSERT INTO users"
-					"(username, password)"
-					"VALUES (?, ?);",
-					(list(user.values()))
-				)
+				"INSERT INTO users"
+				"(username, password)"
+				"VALUES (?, ?)",
+				(list(req.values()))
+			)
 		db.commit()
 	print("<== Default users generated ==>")
 
@@ -58,8 +43,9 @@ def generate_default_receipts(db, count=5):
 
 def reset_db():
 	print(os.path.realpath(os.path.join('storage', 'database.sqlite')))
+	os.makedirs(conf.FILE_STORAGE, exist_ok=True)
 	try:
-		os.remove(os.path.realpath(os.path.join('storage', 'database.sqlite')))
+		os.remove(conf.DATABASE)
 		print('Removed previous database file')
 	except FileNotFoundError:
 		print("Creating new database file")
@@ -75,12 +61,4 @@ def reset_db():
 	
 
 if __name__ == "__main__":
-	action = None
-	while action is None:
-		ans = input('Choose an option: 1 - reset database, 2 - make backup')
-		if ans in ('1', '2'):
-			action = ans
-		if ans == '1':
-			reset_db()
-		elif ans == '2':
-			make_backup()
+	reset_db()
