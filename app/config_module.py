@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(__file__), "app_config.json")) as file:
 
 class Config(object):
 	global CONFIG_FILE
-	DATABASE = os.path.abspath(CONFIG_FILE["DATABASE"])
+	DATABASE = os.path.abspath(os.path.join(os.path.dirname(__file__), CONFIG_FILE["DATABASE"]))
 	SCHEMA = os.path.join(os.path.dirname(__file__), CONFIG_FILE["SCHEMA"])
 	FILE_STORAGE = os.path.join(os.path.dirname(__file__), CONFIG_FILE["FILE_STORAGE"])
 	ALLOWED_EXTENSIONS = CONFIG_FILE["ALLOWED_EXTENSIONS"]
