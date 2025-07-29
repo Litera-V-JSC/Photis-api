@@ -28,7 +28,7 @@ def generate_default_receipts(db, count=5):
 	categories = ["ГСМ топливо", "Товары", "Услуги"]
 	dates = ["2025-07-"+f"{day}".zfill(2) for day in range(1, 31)]
 	receipts = [
-		{"category": choice(categories), "sum": randint(100, 4242), "receipt_date": choice(dates), "file_name": "sample.jpg"} for _ in range(count)
+		{"category": choice(categories), "sum": randint(100, 4242), "receipt_date": choice(dates), "file_name": "sample.png"} for _ in range(count)
 	]
 	for req in receipts:
 		db.execute(
