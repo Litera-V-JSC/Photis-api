@@ -14,5 +14,6 @@ class Config(object):
 	SCHEMA = os.path.join(os.path.dirname(__file__), CONFIG_FILE["SCHEMA"])
 	FILE_STORAGE = os.path.join(os.path.dirname(__file__), CONFIG_FILE["FILE_STORAGE"])
 	ALLOWED_EXTENSIONS = CONFIG_FILE["ALLOWED_EXTENSIONS"]
+	DB_CATEGORIES = CONFIG_FILE["DB_CATEGORIES"]
 	SECRET_KEY = os.getenv("SECRET_KEY")
 	BACKUP = os.path.join(os.path.dirname(__file__), CONFIG_FILE["BACKUP"])

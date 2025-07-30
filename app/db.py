@@ -22,94 +22,116 @@ def close_db(e=None):
 			db.close()
 	
 
-def get_receipt_by_id(id):
+def get_item_by_id(id):
 	db = get_db()
 	try:
-		receipt = db.execute("SELECT * FROM receipts WHERE id = ?;", (id,)).fetchone()
+		return db.execute("SELECT * FROM items WHERE id = ?;", (id,)).fetchone()
 	except db.IntegrityError:
 		return None
-	return receipt
 
 
-""" Returns list of receipt by id list """
-def get_receipt_group(id_list):
+""" Returns list of item with specific id """
+def get_items(id_list: list):
 	db = get_db()
-	receipts = []
+	items = []
 	try:
 		for id in id_list:
-			receipt = get_receipt_by_id(id)
-			if not receipt is None:
-				receipts.append(receipt)
+			item = get_item_by_id(id)
+			if not item is None:
+				items.append(item)
+		return items
 	except db.IntegrityError:
 		return None
-	return receipts
 
 
-def get_all_receipts():
+def get_all_items():
 	db = get_db()
 	try:
-		return db.execute("SELECT * FROM receipts").fetchall()
+		return db.execute("SELECT * FROM items").fetchall()
 	except Exception as e:
 		return None
 
 
-def add_new_receipt(request):
-	data = request.get_json()
-	# image data should be base64 string only
-	if not data or 'image' not in data:
-		return jsonify({'error': 'data is missing'}), 404
+def add_item(data):
 	db = get_db()
-
 	try:
+		# image data should be base64 string only
 		b64_string = data['image']
 		filename = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.png'
 		resp = upload_file(b64_string, filename)
-		if resp[1] not in (200, 204):
-			return resp
-
-		db.execute(
-				"INSERT INTO receipts"
-				"(category, sum, receipt_date, file_name)"
-				"VALUES (?, ?, ?, ?)",
-				(data['category'], data["sum"], data["receipt_date"], filename)
-			)
-		db.commit()
+		if resp is None:
+			return jsonify({'error': 'Invalid base64 data'}), 400
+		else:
+			db.execute(
+					"INSERT INTO items"
+					"(category, sum, creation_date, file_name)"
+					"VALUES (?, ?, ?, ?)",
+					(data['category'], data["sum"], data["creation_date"], filename)
+				)
+			db.commit()
+			return True
 	except db.IntegrityError:
-		return jsonify({'error': 'receipt already exists'}), 404
-	return '', 204
+		return None
 
 
-""" check is there are other receipts using this photo """
-def is_file_attached(id):
+""" check is there are other items using this photo """
+def check_attachment(id: int, filename: str):
 	db = get_db()
 	try:	
-		receipt = dict(get_receipt_by_id(id))
-		same_photo_receipts = db.execute(
-			"SELECT * FROM receipts WHERE file_name = ?;",
-			(receipt['file_name'],)
-			).fetchall()
+		return list(db.execute(
+			"SELECT * FROM items WHERE file_name = ?;",
+			(filename,)
+			).fetchall())
 	except Exception as e:
-		return jsonify({'error': f"Invalid id: {id}"}), 404
-	return (len(list(same_photo_receipts)) != 0, receipt['file_name'])
+		return None
 
 
-def delete_receipt(id):
+def delete_item(id):
 	db = get_db()
 	try:
-		attached, filename = is_file_attached(id)
-		if filename == 404:
-			raise db.IntegrityError("Invalid id: {id}")
-		db.execute("DELETE FROM receipts WHERE id = ?;", (id,))
-		db.commit()
-		if attached:
-			os.remove(path = os.path.join(
-				current_app.root_path, 
-				current_app.config['FILE_STORAGE'], 
-				filename
-			))
-	except db.IntegrityError as e:
-		return jsonify({'error': str(e)}), 404
-	return '', 204
+		filename = dict(get_items([id])[0])["file_name"]
+		items_ = check_attachment(id, filename)
+		if items_ is None:
+			return None
+		else:
+			db.execute("DELETE FROM items WHERE id = ?;", (id,))
+			db.commit()
+			# if we dont have other items using this file, we remove it
+			if len(items_) == 1:
+				print("path:", os.path.join(
+					current_app.root_path, 
+					current_app.config['FILE_STORAGE'], 
+					filename
+				))
+				os.remove(path = os.path.join(
+					current_app.root_path, 
+					current_app.config['FILE_STORAGE'], 
+					filename
+				))
+			return True
+	except Exception as e:
+		print(e)
+		return None
+
+""" Update category list """
+def update_categories(new_categories: list):
+	try:
+		db = get_db()
+		cursor.execute("DELETE FROM categories")
+		cursor.execute("DELETE FROM sqlite_sequence WHERE name='categories'")
+		db.executemany("INSERT INTO categories (category,) VALUES (?,)", new_categories)
+		return True
+	except Exception as e:
+		return None
+
+
+def get_categories():
+	try:
+		db = get_db()
+		return [i["category"] for i in list(db.execute("SELECT * FROM categories").fetchall())]
+	except Exception as e:
+		return None
+
 
 
 """ Check login data """
