@@ -53,25 +53,17 @@ def generate_default_items(db, count=25):
 	print("<== Default items generated ==>")
 
 
-def reset_db():
+def generate_defaults():
 	print(os.path.realpath(os.path.join('storage', 'database.sqlite')))
 	os.makedirs(conf.FILE_STORAGE, exist_ok=True)
-	try:
-		os.remove(conf.DATABASE)
-		print('Removed previous database file')
-	except FileNotFoundError:
-		print("Creating new database file")
 	db = sqlite3.connect(
 		conf.DATABASE, detect_types=sqlite3.PARSE_DECLTYPES
 	)
-	cur = db.cursor()
-	with open(conf.SCHEMA) as schema:
-		cur.executescript(schema.read()) 
-		generate_default_users(db)
-		generate_default_items(db)
-		generate_default_categories(db)
-		print("<== Database initialized ==>")
-	
+	generate_default_users(db)
+	generate_default_items(db)
+	generate_default_categories(db)
+	print("<== Database initialized ==>")
+
 
 if __name__ == "__main__":
-	reset_db()
+	generate_defaults()

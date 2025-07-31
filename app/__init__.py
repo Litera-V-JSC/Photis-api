@@ -22,7 +22,11 @@ def create_app():
 	logfile.debug("Application created")
 	logconsole.debug("Application created")
 
+	if not os.path.exists(app.config["DATABASE"]):
+		db.init_db(conf=app.config)
+		
 	db.init_app(app)
+
 	jwt = JWTManager(app)
 	
 	return app

@@ -136,19 +136,27 @@ def get_categories():
 
 """ Check login data """
 def check_user(username, password):
-	db = get_db()
-	user = dict(db.execute(
-		"SELECT * FROM users WHERE username = ?;",
-		(username,)
-		).fetchone())
-	return check_password_hash(user['password'], password)
-	
+	try:
+		db = get_db()
+		user = dict(db.execute(
+			"SELECT * FROM users WHERE username = ?;",
+			(username,)
+			).fetchone())
+		return check_password_hash(user['password'], password)
+	except Exception:
+		return False
+		
 
 
-def init_db():
-	db = get_db()
-	with current_app.open_resource(current_app.config["SCHEMA"]) as schema:
-		db.executescript(schema.read().decode("utf8"))
+def init_db(conf):
+	os.makedirs(conf["FILE_STORAGE"], exist_ok=True)
+	print("DB location:", os.path.realpath(os.path.join('storage', 'database.sqlite')))
+	db = sqlite3.connect(
+		conf["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
+	)
+	cur = db.cursor()
+	with open(conf["SCHEMA"]) as schema:
+		cur.executescript(schema.read()) 
 
 
 def init_app(app):
