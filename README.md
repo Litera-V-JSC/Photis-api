@@ -5,44 +5,63 @@ RESTful API-server for receipt scanner client
 
 ## Installation guide
 
-### Build app
-1. To build the app, you need to have docker installed.
-2. If you already have docker, go to "app" directory (source code stores here) :
+There are three supported methods for building the application: utilizing Docker Compose (recommended), using standalone Docker commands, or performing a manual build from source
+### Building with Docker-compose
+1. Check if you have docker and docker-compose installed
+2. Go to project direcory and run: ``` docker compose up ```  
+That`s it!
+
+Compose automatically creates shared directory /storage, where all your database data and logs will be stored in.
+
+### Building with Docker
+
+1. Check if you have docker installed.
+2. To build container run ` build.sh ` script
+3. To launch app run ` run.sh ` script
+
+All shell scripts are located in app/sh_files directory.  
+
+In this method app uses *receipt_scanner* docker volume to store data.  
+Backup of database, logs and other data can be created by running ` ./make_backup ` script. It will copy all files from receipt_scanner docker volume and create .tar archive in current directory.
+
+By default, server will run on port 8000. If you need other port, change -p flag in `run.sh` script like this: *docker run -p <host_port>:<container_port> ...*
+
+### Building from source 
+1. create python venv and install dependencies:
+    ```
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
+    ```
+2. Go to project dir and create .env file with SECRET_KEY (requuired by Flask):
     ```
     cd app
+    SECRET_KEY=$(openssl rand -hex 32 | sha256sum | awk '{print $1}')
+    echo "SECRET_KEY=$SECRET_KEY" > .env
     ```
-3. Build docker container and create volume  
-    Simply run ``` ./build.sh ``` script or build it manually:
-    ``` 
-    docker volume create receipt_scanner 
-    docker build . -t receipt_scanner:latest
+3. To launch app, run:
+    ```
+    gunicorn -w 4 -b 0.0.0.0:8000 main:app
     ```
 
-### Running the app 
-To run container use ```./run.sh``` script or launch it manually:    
-``` 
-docker run -p 8000:8000 --mount type=volume,source=receipt_scanner,destination=/app/storage receipt_scanner:latest
-```  
-By default, server will run on port 8000. If you need other port, run it manually and change -p flag like this: -p <host_port>:<container_port>
+#### Default (test) data 
+After installation database will not contain any data. But if you want to test API, you can generate it by running *db_defaults_gen.py* script - it will create sample data for every table.
 
-### Creating backup 
-Backup of database and stored files can be created with ``` ./make_backup ``` script. It will copy all files from receipt_scanner docker volume and create .tar archive in current directory.
 
 ---
 
 ## Summary Table of Endpoints
 
-| Method  | Endpoint          | Description                    | Auth Required | Request Body                       | Response                                                                                  |
-|---------|-------------------|-------------------------------|---------------|----------------------------------|------------------------------------------------------------------------------------------|
-| POST    | `/login`          | Login and get JWT token        | No            | `{ "username": "string", "password": "string" }`     | `200 OK` with `{ "access_token": "jwt_token_string" }` or `404 Not Found` with `{"error": "invalid password"}` |
-| GET/POST| `/`               | Invalid; returns 400           | No            | N/A                              | `400 Bad Request`                                                                         |
-| POST    | `/add`            | Add new receipt                | Yes           | JSON with at least keys: `category` (string), `sum` (number), `receipt_date` (string, e.g. "YYYY-MM-DD"), `image` (base64-encoded PNG string) | `204 No Content` on success; `404 Not Found` with JSON error `{ "error": "data is missing" }` or `{ "error": "receipt already exists" }` |
-| DELETE  | `/delete/<id>`    | Delete receipt by ID           | Yes           | N/A                              | `204 No Content` on success; `404 Not Found` with JSON error `{ "error": "Invalid id: <id>" }`                           |
-| GET     | `/receipt/all`    | List all receipts              | Yes           | N/A                              | `200 OK` with JSON array `[ {...receipt fields...}, ... ]` or `404 Not Found` with `{ "error": "error while loading list of all receipts from database" }` |
-| GET     | `/receipt/<id>`   | Get receipt by ID              | Yes           | N/A                              | `200 OK` with JSON object `{ ...receipt fields... }` or `404 Not Found` with `{ "error": "invalid id: <id>" }`           |
-| GET     | `/files/<id>`     | Download receipt image         | Yes           | N/A                              | `200 OK` serves image file; `404 Not Found` with `{ "error": "invalid receipt id" }`                                              |
-| GET     | `/categories`     | List predefined receipt categories | Yes       | N/A                              | `200 OK` with JSON array `["ГСМ топливо", "Товары", "Услуги"]`                                                             |
-| GET     | `/report`         | Generate PDF report            | Yes           | Optional JSON `{ "id_list": [<int>, ...] }`                                                                | `200 OK` serves generated PDF file; `404 Not Found` with `{ "error": "invalid receipt id" }`                                   |
+| Endpoint       | Method(s)         | Auth Required | Description                                                   | Request Data / Params                 | Response                           |
+|----------------|-------------------|---------------|---------------------------------------------------------------|-------------------------------------|-----------------------------------|
+| `/login`       | GET, POST         | No            | Authenticate user and get JWT token                            | JSON: `{ "username": str, "password": str }`  | JSON: `{ "access_token": str }` or error |
+| `/`            | GET, POST         | No            | Index page — rejects all requests                              | None                                | 400 Bad Request                   |
+| `/add`         | POST              | Yes           | Add an item, save image                                        | JSON with item data including `"image"` | 204 No Content or error           |
+| `/delete/<id>` | DELETE            | Yes           | Delete existing item by id                                     | URL param: item id (int)             | 204 No Content or error           |
+| `/item/<id>`   | GET               | Yes           | Get item by id or list all items (`id=all`)                   | URL param: item id or `all`           | JSON item(s) or error             |
+| `/files/<id>`  | GET               | Yes           | Download item image by item id                                 | URL param: item id (int)              | File or error                    |
+| `/categories`  | GET               | Yes           | Get list of item categories                                   | None                                | JSON categories or error          |
+| `/report`      | GET               | Yes           | Generate PDF report for specified item IDs                    | JSON with `"id_list": [ids]` | PDF file or error                |
 
 ---
 
@@ -53,3 +72,5 @@ Backup of database and stored files can be created with ``` ./make_backup ``` sc
 - Receipt data structure depends on database schema (see `db` module).
 - Category list is static as implemented.
 ---
+
+

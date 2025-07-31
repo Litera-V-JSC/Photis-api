@@ -18,11 +18,12 @@ def encode_base64(b64_string):
 def upload_file(b64_string, filename):
 	img_data = encode_base64(b64_string)
 	if img_data is None:
-		return jsonify({'error': 'Invalid base64 data'}), 400
-	storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
-	with open(os.path.join(storage_path, filename), 'wb') as f:
-		f.write(img_data)
-	return '', 204
+		return None
+	else:
+		storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
+		with open(os.path.join(storage_path, filename), 'wb') as f:
+			f.write(img_data)
+		return True
 
 
 """

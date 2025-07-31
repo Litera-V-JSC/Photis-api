@@ -44,80 +44,98 @@ def login():
 	return make_response(jsonify({'access_token': jwt_token}), 200)
 
 
-""" Index page, does not accept any requests"""
+""" Index page, does not accept any requests """
 @bp.route('/', methods=("GET", "POST"))
 def index():
 	return abort(400)
 
 
-""" Add receipt info to database and save its img """
+""" Add item and save image to storage """
 @bp.route('/add', methods=("POST",))
 @jwt_required()
-def add_receipt():
-	return db.add_new_receipt(request)
+def add_item():
+	data = request.get_json()
+	if not data or 'image' not in data:
+		return jsonify({'error': 'some data is missing'}), 404
+
+	res = db.add_item(data)
+	if res is None:
+		jsonify({'error': 'item already exists or data is corrupted'}), 404
+	else:
+		return '', 204
 
 
-""" Delete existing receipt """
+""" Delete existing item """
 @bp.route('/delete/<id>', methods=("DELETE",))
 @jwt_required()
-def delete_receipt(id):
+def delete_item(id):
 	try:
 		id = int(id)
-		return db.delete_receipt(id)
+		res = db.delete_item(id)
+		if res is None:
+			raise Exception
+		else:
+			return '', 204
 	except Exception:
 		return jsonify({'error': f"Invalid id: {id}"}), 404
 
 
 """ 
-Get receipt by its id or list of all available receipts 
-id=all - list of all receipts; 
-id=<id:int> - only one receipt with unique id
+Get item by its id or list of all available items 
+id=all - list of all items; 
+id=<id:int> - only one item with unique id
 """
-@bp.route('/receipt/<id>', methods=("GET",))
+@bp.route('/item/<id>', methods=("GET",))
 @jwt_required()
-def get_receipt(id):
+def get_item(id):
 	if str(id) == "all":
-		receipts = db.get_all_receipts()
-		if receipts is None:
-			return jsonify({'error': f"error while loading list of all receipts from database"}), 404
-		return jsonify([dict(row) for row in receipts]), 200
+		items = db.get_all_items()
+		if items is None:
+			return jsonify({'error': f"error while loading items"}), 404
+		else:
+			return jsonify([dict(row) for row in items]), 200
 	else:
-		receipt = db.get_receipt_by_id(id)
-		if receipt is None: 
+		item = db.get_items([id])[0]
+		if item is None: 
 			return jsonify({'error': f"invalid id: {id}"}), 404
-		return jsonify(dict(receipt)), 200
+		else:
+			return jsonify(dict(item)), 200
 
 
-""" Get receipt img """
+""" Get item image """
 @bp.route('/files/<int:id>', methods=("GET",))
 @jwt_required()
 def download(id):
-	receipt = db.get_receipt_by_id(id)
-	if receipt is None:
-		return jsonify({'error': 'invalid receipt id'}), 404
+	item = db.get_items([id])[0]
+	if item is None:
+		return jsonify({'error': 'invalid id'}), 404
 	storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
-	return send_from_directory(storage_path, receipt["file_name"])
+	return send_from_directory(storage_path, item["file_name"])
 
 
-""" Get receipt categories """
+""" Get item categories """
 @bp.route('/categories', methods=("GET",))
 @jwt_required()
 def categories():
-	return jsonify(["ГСМ топливо", "Товары", "Услуги"]), 200
+	categories = db.get_categories()
+	if categories is None:
+		return jsonify({'error': 'cannot load categories from database'}), 404 
+	else:
+		return jsonify(categories), 200
 
 
-""" Generate general receipts report """
+""" Generate report """
 @bp.route('/report', methods=("GET",))
 @jwt_required()
 def report():
 	filename = "report " + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.pdf'
-	receipts = db.get_receipt_group(request.json.get("id_list", None))
-	if receipts is None:
-		return jsonify({'error': 'invalid receipt id'}), 404
+	items = db.get_items(request.json.get("id_list", None))
+	if items is None:
+		return jsonify({'error': 'invalid id'}), 404
 	resp = create_pdf(
 		os.path.join(current_app.root_path, current_app.config['FILE_STORAGE']),
 		os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'], filename),
-		receipts
+		items
 	)
 	storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
 	return send_from_directory(storage_path, filename)

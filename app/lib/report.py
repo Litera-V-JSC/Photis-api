@@ -71,7 +71,7 @@ def create_pdf(storage_dir, file_path, raw_table_data):
 		sum_val = float(row['sum'])
 		sums_list.append(sum_val)
 		sum_values += sum_val
-		table_data.append([convert_date_format(row['receipt_date']), row['category'], f"{sum_val:.2f}"])
+		table_data.append([convert_date_format(row['creation_date']), row['category'], f"{sum_val:.2f}"])
 
 	data = [["Дата выдачи", "Категория", "Сумма"]] + table_data
 
@@ -79,14 +79,14 @@ def create_pdf(storage_dir, file_path, raw_table_data):
 	table = create_table(data)
 
 	# Prepare stats text as Paragraphs
-	count_receipts = len(table_data)
-	avg_sum = sum_values / count_receipts if count_receipts else 0
+	count = len(table_data)
+	avg_sum = sum_values / count if count else 0
 	max_sum = max(sums_list) if sums_list else 0
 	min_sum = min(sums_list) if sums_list else 0
 
 	stats_lines = [
 		f"Итоговая сумма: {sum_values:,.2f}",
-		f"Количество чеков: {count_receipts}",
+		f"Количество чеков: {count}",
 		f"Средняя сумма чека: {avg_sum:,.2f}",
 		f"Максимальная сумма: {max_sum:,.2f}",
 		f"Минимальная сумма: {min_sum:,.2f}",

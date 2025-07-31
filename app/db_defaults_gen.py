@@ -11,6 +11,18 @@ import shutil
 conf = config_module.Config()
 
 
+def generate_default_categories(db):
+	for cat in conf.DB_CATEGORIES:
+		db.execute(
+				"INSERT INTO categories"
+				"(category)"
+				"VALUES (?)",
+				(cat,)
+			)
+		db.commit()
+	print("<== Default categories generated ==>")
+
+
 def generate_default_users(db, count=4):
 	users = [{"username": f"u{i}", "password": generate_password_hash(f"p{i}")} for i in range(count)]
 	for req in users:
@@ -24,41 +36,34 @@ def generate_default_users(db, count=4):
 	print("<== Default users generated ==>")
 
 
-def generate_default_receipts(db, count=5):
+def generate_default_items(db, count=25):
 	categories = ["ГСМ топливо", "Товары", "Услуги"]
 	dates = ["2025-07-"+f"{day}".zfill(2) for day in range(1, 31)]
-	receipts = [
-		{"category": choice(categories), "sum": randint(100, 4242), "receipt_date": choice(dates), "file_name": "sample.png"} for _ in range(count)
+	items = [
+		{"category": choice(categories), "sum": randint(100, 4242), "creation_date": choice(dates), "file_name": "sample.png"} for _ in range(count)
 	]
-	for req in receipts:
+	for req in items:
 		db.execute(
-				"INSERT INTO receipts"
-				"(category, sum, receipt_date, file_name)"
+				"INSERT INTO items"
+				"(category, sum, creation_date, file_name)"
 				"VALUES (?, ?, ?, ?)",
 				(list(req.values()))
 			)
 		db.commit()
-	print("<== Default receipts generated ==>")
+	print("<== Default items generated ==>")
 
 
-def reset_db():
+def generate_defaults():
 	print(os.path.realpath(os.path.join('storage', 'database.sqlite')))
 	os.makedirs(conf.FILE_STORAGE, exist_ok=True)
-	try:
-		os.remove(conf.DATABASE)
-		print('Removed previous database file')
-	except FileNotFoundError:
-		print("Creating new database file")
 	db = sqlite3.connect(
 		conf.DATABASE, detect_types=sqlite3.PARSE_DECLTYPES
 	)
-	cur = db.cursor()
-	with open(conf.SCHEMA) as schema:
-		cur.executescript(schema.read()) 
-		generate_default_users(db)
-		generate_default_receipts(db)
-		print("<== Database initialized ==>")
-	
+	generate_default_users(db)
+	generate_default_items(db)
+	generate_default_categories(db)
+	print("<== Database initialized ==>")
+
 
 if __name__ == "__main__":
-	reset_db()
+	generate_defaults()

@@ -10,6 +10,9 @@ COPY requirements.txt .
 # Install python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Generate random data and hash it with sha256
+RUN SECRET_KEY=$(openssl rand -hex 32 | sha256sum | awk '{print $1}')
+
 # Copy the rest of the application code
 COPY . .
 
