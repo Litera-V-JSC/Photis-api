@@ -113,15 +113,19 @@ def delete_item(id):
 		print(e)
 		return None
 
-""" Update category list """
-def update_categories(new_categories: list):
+
+def add_category(data):
 	try:
 		db = get_db()
-		cursor.execute("DELETE FROM categories")
-		cursor.execute("DELETE FROM sqlite_sequence WHERE name='categories'")
-		db.executemany("INSERT INTO categories (category,) VALUES (?,)", new_categories)
+		db.execute(
+				"INSERT INTO categories"
+				"(category)"
+				"VALUES (?)",
+				(data['category'],)
+			)
+		db.commit()
 		return True
-	except Exception as e:
+	except db.IntegrityError:
 		return None
 
 
@@ -150,7 +154,6 @@ def check_user(username, password):
 
 def init_db(conf):
 	os.makedirs(conf["FILE_STORAGE"], exist_ok=True)
-	print("DB location:", os.path.realpath(os.path.join('storage', 'database.sqlite')))
 	db = sqlite3.connect(
 		conf["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
 	)

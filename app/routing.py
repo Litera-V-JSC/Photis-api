@@ -124,6 +124,21 @@ def categories():
 		return jsonify(categories), 200
 
 
+""" Add new category """
+@bp.route('/category', methods=("POST",))
+@jwt_required()
+def add_category():
+	data = request.get_json()
+	if not data:
+		return jsonify({'error': 'category data is missing'}), 404
+
+	res = db.add_category(data)
+	if res is None:
+		jsonify({'error': 'category already exists'}), 404
+	else:
+		return '', 204
+
+
 """ Generate report """
 @bp.route('/report', methods=("GET",))
 @jwt_required()
