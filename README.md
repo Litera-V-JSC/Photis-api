@@ -44,6 +44,10 @@ By default, server will run on port 8000. If you need other port, change -p flag
     gunicorn -w 4 -b 0.0.0.0:8000 main:app
     ```
 
+#### Default (test) data 
+After installation database will not contain any data. But if you want to test API, you can generate it by running *db_defaults_gen.py* script - it will create sample data for every table.
+
+
 ---
 
 ## Summary Table of Endpoints
