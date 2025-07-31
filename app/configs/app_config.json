@@ -1,5 +1,7 @@
 {
 	"DATABASE": "storage/database.sqlite",
+	"LOGGING_CONFIG": "configs/logging.conf",
+	"LOGS": "storage/logs",
 	"SCHEMA": "schema.sql",
 	"ALLOWED_EXTENSIONS": ["jpg", "png", "jpeg"],
 	"FILE_STORAGE": "storage",
