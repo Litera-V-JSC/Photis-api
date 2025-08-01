@@ -52,16 +52,18 @@ After installation database will not contain any data. But if you want to test A
 
 ## Summary Table of Endpoints
 
-| Endpoint       | Method(s)         | Auth Required | Description                                                   | Request Data / Params                 | Response                           |
-|----------------|-------------------|---------------|---------------------------------------------------------------|-------------------------------------|-----------------------------------|
-| `/login`       | GET, POST         | No            | Authenticate user and get JWT token                            | JSON: `{ "username": str, "password": str }`  | JSON: `{ "access_token": str }` or error |
-| `/`            | GET, POST         | No            | Index page — rejects all requests                              | None                                | 400 Bad Request                   |
-| `/add`         | POST              | Yes           | Add an item, save image                                        | JSON with item data including `"image"` | 204 No Content or error           |
-| `/delete/<id>` | DELETE            | Yes           | Delete existing item by id                                     | URL param: item id (int)             | 204 No Content or error           |
-| `/item/<id>`   | GET               | Yes           | Get item by id or list all items (`id=all`)                   | URL param: item id or `all`           | JSON item(s) or error             |
-| `/files/<id>`  | GET               | Yes           | Download item image by item id                                 | URL param: item id (int)              | File or error                    |
-| `/categories`  | GET               | Yes           | Get list of item categories                                   | None                                | JSON categories or error          |
-| `/report`      | GET               | Yes           | Generate PDF report for specified item IDs                    | JSON with `"id_list": [ids]` | PDF file or error                |
+| Endpoint               | Method(s)  | JWT Required | Parameters               | Description                                                    | Success Response    | Error Response                      |
+|------------------------|------------|--------------|--------------------------|----------------------------------------------------------------|---------------------|-----------------------------------|
+| `/login`               | GET, POST  | No           | JSON: `username`, `password` | Authenticate user and get JWT token                              | 200 + `{access_token}` | 404 + `{error: "invalid login data"}` |
+| `/`                    | GET, POST  | No           | None                     | Index route; rejects any request                               | 400                 | —                                 |
+| `/add-item`            | POST       | Yes          | JSON with `image` and other data | Add new item with image, saving to storage                    | 204 (No Content)     | 404 + `{error: 'some data is missing'}` or `{error: 'item already exists or data is corrupted'}` |
+| `/delete-item/<id>`    | DELETE     | Yes          | Path: item ID (int)      | Delete item by ID                                              | 204 (No Content)     | 404 + `{error: "Invalid id: <id>"}` |
+| `/delete-category/<id>`| DELETE     | Yes          | Path: category ID (int)  | Delete category by ID                                          | 204 (No Content)     | 404 + `{error: "Invalid id: <id>"}` |
+| `/item/<id>`           | GET        | Yes          | Path: item ID or `"all"` | Get one item by ID or list of all items                        | 200 + item(s) JSON   | 404 + `{error: "invalid id: <id>"}` or `{error: "error while loading items"}` |
+| `/files/<id>`          | GET        | Yes          | Path: item ID (int)      | Download stored file image associated with item               | File download        | 404 + `{error: "invalid id"}`     |
+| `/categories`          | GET        | Yes          | None                     | Get list of all categories                                     | 200 + categories JSON| 404 + `{error: "cannot load categories from database"}` |
+| `/add-category`        | POST       | Yes          | JSON category data       | Add new category                                               | 204 (No Content)     | 404 + `{error: "category data is missing"}` or `{error: "category already exists"}` |
+| `/report`              | GET        | Yes          | JSON with `"id_list"` (optional) | Generate PDF report for specified items                       | PDF file download    | 404 + `{error: "invalid id"}`     |
 
 ---
 
