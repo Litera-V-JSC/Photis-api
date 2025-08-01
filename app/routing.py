@@ -24,8 +24,8 @@ def refresh_expiring_jwts(response):
 		now = datetime.datetime.now(datetime.timezone.utc)
 		target_timestamp = datetime.datetime.timestamp(now + datetime.timedelta(minutes=60))
 		if target_timestamp > exp_timestamp:
-				access_token = create_access_token(identity=get_jwt_identity())
-				set_access_cookies(response, access_token)
+			access_token = create_access_token(identity=get_jwt_identity())
+			set_access_cookies(response, access_token)
 		return response
 	except (RuntimeError, KeyError):
 		# Case where there is not a valid JWT. Just return the original response
@@ -38,7 +38,7 @@ def login():
 	username = request.json.get("username", None)
 	password = request.json.get("password", None)
 	if not db.check_user(username, password):
-		return jsonify({'error': 'invalid password'}), 404
+		return jsonify({'error': 'invalid login data'}), 404
 
 	jwt_token = create_access_token(identity=username)
 	return make_response(jsonify({'access_token': jwt_token}), 200)
@@ -51,27 +51,41 @@ def index():
 
 
 """ Add item and save image to storage """
-@bp.route('/add', methods=("POST",))
+@bp.route('/add-item', methods=("POST",))
 @jwt_required()
 def add_item():
 	data = request.get_json()
 	if not data or 'image' not in data:
 		return jsonify({'error': 'some data is missing'}), 404
 
-	res = db.add_item(data)
-	if res is None:
+	response = db.add_item(data)
+	if response is None:
 		jsonify({'error': 'item already exists or data is corrupted'}), 404
-	else:
-		return '', 204
+	return '', 204
 
 
-""" Delete existing item """
-@bp.route('/delete/<id>', methods=("DELETE",))
+""" Delete item """
+@bp.route('/delete-item/<id>', methods=("DELETE",))
 @jwt_required()
 def delete_item(id):
 	try:
 		id = int(id)
 		res = db.delete_item(id)
+		if res is None:
+			raise Exception
+		else:
+			return '', 204
+	except Exception:
+		return jsonify({'error': f"Invalid id: {id}"}), 404
+
+
+""" Delete category """
+@bp.route('/delete-category/<id>', methods=("DELETE",))
+@jwt_required()
+def delete_category(id):
+	try:
+		id = int(id)
+		res = db.delete_category(id)
 		if res is None:
 			raise Exception
 		else:
@@ -92,14 +106,12 @@ def get_item(id):
 		items = db.get_all_items()
 		if items is None:
 			return jsonify({'error': f"error while loading items"}), 404
-		else:
-			return jsonify([dict(row) for row in items]), 200
-	else:
-		item = db.get_items([id])[0]
-		if item is None: 
-			return jsonify({'error': f"invalid id: {id}"}), 404
-		else:
-			return jsonify(dict(item)), 200
+		return jsonify([dict(item) for item in items]), 200
+
+	item = db.get_items([id])[0]
+	if item is None: 
+		return jsonify({'error': f"invalid id: {id}"}), 404
+	return jsonify(dict(item)), 200
 
 
 """ Get item image """
@@ -120,8 +132,21 @@ def categories():
 	categories = db.get_categories()
 	if categories is None:
 		return jsonify({'error': 'cannot load categories from database'}), 404 
-	else:
-		return jsonify(categories), 200
+	return jsonify([dict(category) for category in categories]), 200
+
+
+""" Add new category """
+@bp.route('/add-category', methods=("POST",))
+@jwt_required()
+def add_category():
+	data = request.get_json()
+	if not data:
+		return jsonify({'error': 'category data is missing'}), 404
+
+	res = db.add_category(data)
+	if res is None:
+		jsonify({'error': 'category already exists'}), 404
+	return '', 204
 
 
 """ Generate report """

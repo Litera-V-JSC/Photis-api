@@ -14,11 +14,11 @@ conf = config_module.Config()
 def generate_default_categories(db):
 	for cat in conf.DB_CATEGORIES:
 		db.execute(
-				"INSERT INTO categories"
-				"(category)"
-				"VALUES (?)",
-				(cat,)
-			)
+			"INSERT INTO categories"
+			"(category)"
+			"VALUES (?)",
+			(cat,)
+		)
 		db.commit()
 	print("<== Default categories generated ==>")
 
@@ -27,11 +27,11 @@ def generate_default_users(db, count=4):
 	users = [{"username": f"u{i}", "password": generate_password_hash(f"p{i}")} for i in range(count)]
 	for req in users:
 		db.execute(
-				"INSERT INTO users"
-				"(username, password)"
-				"VALUES (?, ?)",
-				(list(req.values()))
-			)
+			"INSERT INTO users"
+			"(username, password)"
+			"VALUES (?, ?)",
+			(list(req.values()))
+		)
 		db.commit()
 	print("<== Default users generated ==>")
 
@@ -42,20 +42,18 @@ def generate_default_items(db, count=25):
 	items = [
 		{"category": choice(categories), "sum": randint(100, 4242), "creation_date": choice(dates), "file_name": "sample.png"} for _ in range(count)
 	]
-	for req in items:
+	for item in items:
 		db.execute(
-				"INSERT INTO items"
-				"(category, sum, creation_date, file_name)"
-				"VALUES (?, ?, ?, ?)",
-				(list(req.values()))
-			)
+			"INSERT INTO items"
+			"(category, sum, creation_date, file_name)"
+			"VALUES (?, ?, ?, ?)",
+			(list(item.values()))
+		)
 		db.commit()
 	print("<== Default items generated ==>")
 
 
 def generate_defaults():
-	print(os.path.realpath(os.path.join('storage', 'database.sqlite')))
-	os.makedirs(conf.FILE_STORAGE, exist_ok=True)
 	db = sqlite3.connect(
 		conf.DATABASE, detect_types=sqlite3.PARSE_DECLTYPES
 	)
