@@ -8,22 +8,20 @@ def encode_base64(b64_string):
 	if ',' in b64_string:
 		b64_string = b64_string.split(',')[1]
 	try:
-		img_data = base64.b64decode(b64_string)
+		return base64.b64decode(b64_string)
 	except Exception as e:
 		return None 
-	return img_data
 
 
-""" Добавление файла """
+""" Saving file to storage """
 def upload_file(b64_string, filename):
 	img_data = encode_base64(b64_string)
 	if img_data is None:
 		return None
-	else:
-		storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
-		with open(os.path.join(storage_path, filename), 'wb') as f:
-			f.write(img_data)
-		return True
+	storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
+	with open(os.path.join(storage_path, filename), 'wb') as f:
+		f.write(img_data)
+	return True
 
 
 """
