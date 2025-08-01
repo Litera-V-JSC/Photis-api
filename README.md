@@ -69,6 +69,7 @@ After installation database will not contain any data. But if you want to test A
 
 ## Notes on Response Structures:
 
+- Success response is always 200 or 204
 - All authenticated routes require JWT Bearer token passed in the `Authorization` header.
 - PDF reports and objects images are served as file downloads from server storage.
 - Category list is static as implemented.
