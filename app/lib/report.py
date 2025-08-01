@@ -27,7 +27,7 @@ def draw_first_page_header(canvas, doc):
     text_width = canvas.stringWidth(date_text, "Arial", 10)
     canvas.drawString(width - text_width - 40, height - 40, date_text)
     canvas.setFont("Arial", 16)
-    title = "Отчёт из реестра чеков"
+    title = "Отчёт из реестра"
     title_width = canvas.stringWidth(title, "Arial", 16)
     canvas.drawString((width - title_width) / 2, height - 70, title)
     canvas.restoreState()
@@ -86,8 +86,8 @@ def create_pdf(storage_dir, file_path, raw_table_data):
 
 	stats_lines = [
 		f"Итоговая сумма: {sum_values:,.2f}",
-		f"Количество чеков: {count}",
-		f"Средняя сумма чека: {avg_sum:,.2f}",
+		f"Количество: {count}",
+		f"Средняя сумма: {avg_sum:,.2f}",
 		f"Максимальная сумма: {max_sum:,.2f}",
 		f"Минимальная сумма: {min_sum:,.2f}",
 	]

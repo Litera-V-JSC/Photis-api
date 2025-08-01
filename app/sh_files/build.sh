@@ -1,7 +1,7 @@
 #!/bin/sh
 
-VOLUME_NAME="receipt_scanner"
-IMAGE_NAME="receipt_scanner:latest"
+VOLUME_NAME="photis"
+IMAGE_NAME="photis:latest"
 
 cd ..
 

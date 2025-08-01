@@ -1,5 +1,5 @@
-# ReceiptScanner-API
-RESTful API-server for receipt scanner client
+# Photis-API
+RESTful API-server for Photis client
 
 ---
 
@@ -21,8 +21,8 @@ Compose automatically creates shared directory /storage, where all your database
 
 All shell scripts are located in app/sh_files directory.  
 
-In this method app uses *receipt_scanner* docker volume to store data.  
-Backup of database, logs and other data can be created by running ` ./make_backup ` script. It will copy all files from receipt_scanner docker volume and create .tar archive in current directory.
+In this method app uses *photis* docker volume to store data.  
+Backup of database, logs and other data can be created by running ` ./make_backup ` script. It will copy all files from photis docker volume and create .tar archive in current directory.
 
 By default, server will run on port 8000. If you need other port, change -p flag in `run.sh` script like this: *docker run -p <host_port>:<container_port> ...*
 
@@ -70,8 +70,7 @@ After installation database will not contain any data. But if you want to test A
 ## Notes on Response Structures:
 
 - All authenticated routes require JWT Bearer token passed in the `Authorization` header.
-- PDF reports and receipt images are served as file downloads from server storage.
-- Receipt data structure depends on database schema (see `db` module).
+- PDF reports and objects images are served as file downloads from server storage.
 - Category list is static as implemented.
 ---
 
