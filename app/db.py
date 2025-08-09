@@ -1,5 +1,5 @@
 from flask import g, current_app, jsonify
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 import sqlite3
 from lib.file_utils import *
 import datetime
@@ -111,6 +111,41 @@ def delete_item(id):
 		return None
 
 
+def delete_user(username):
+	try:
+		db = get_db()
+		db.execute("DELETE FROM users WHERE username = ?;", (username,))
+		db.commit()
+		return True
+	except Exception:
+		return None
+
+
+def add_user(data):
+	try:
+		db = get_db()
+		if len(db.execute("SELECT * FROM users WHERE username = ?;", (data['username'].strip(),)).fetchall()) != 0:
+			return False
+		db.execute(
+			"INSERT INTO users"
+			"(username, password)"
+			"VALUES (?, ?)",
+			(data['username'].strip(), generate_password_hash(data['password']))
+		)
+		db.commit()
+		return True
+	except db.IntegrityError:
+		return None
+
+
+def get_usernames():
+	try:
+		db = get_db()
+		return db.execute("SELECT username FROM users").fetchall()
+	except Exception as e:
+		return None
+
+
 def delete_category(id):
 	try:
 		db = get_db()
@@ -124,6 +159,8 @@ def delete_category(id):
 def add_category(data):
 	try:
 		db = get_db()
+		if len(db.execute("SELECT * FROM categories WHERE category = ?;", (data['category'],)).fetchall()) != 0:
+			return False
 		db.execute(
 			"INSERT INTO categories"
 			"(category)"

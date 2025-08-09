@@ -79,21 +79,6 @@ def delete_item(id):
 		return jsonify({'error': f"Invalid id: {id}"}), 404
 
 
-""" Delete category """
-@bp.route('/delete-category/<id>', methods=("DELETE",))
-@jwt_required()
-def delete_category(id):
-	try:
-		id = int(id)
-		res = db.delete_category(id)
-		if res is None:
-			raise Exception
-		else:
-			return '', 204
-	except Exception:
-		return jsonify({'error': f"Invalid id: {id}"}), 404
-
-
 """ 
 Get item by its id or list of all available items 
 id=all - list of all items; 
@@ -135,6 +120,21 @@ def categories():
 	return jsonify([dict(category) for category in categories]), 200
 
 
+""" Delete category """
+@bp.route('/delete-category/<id>', methods=("DELETE",))
+@jwt_required()
+def delete_category(id):
+	try:
+		id = int(id)
+		res = db.delete_category(id)
+		if res is None:
+			raise Exception
+		else:
+			return '', 204
+	except Exception:
+		return jsonify({'error': f"Invalid id: {id}"}), 404
+
+
 """ Add new category """
 @bp.route('/add-category', methods=("POST",))
 @jwt_required()
@@ -144,8 +144,52 @@ def add_category():
 		return jsonify({'error': 'category data is missing'}), 404
 
 	res = db.add_category(data)
-	if res is None:
-		jsonify({'error': 'category already exists'}), 404
+	if res == False:
+		return jsonify({'error': 'category already exists'}), 404
+	elif res is None:
+		return jsonify({'error': 'cannot add category to database because of internal errors'}), 404
+	return '', 204
+
+
+""" Get all usernames """
+@bp.route('/usernames', methods=("GET",))
+@jwt_required()
+def usernames():
+	usernames = db.get_usernames()
+	if usernames is None:
+		return jsonify({'error': 'cannot load usernames from database'}), 404 
+	return jsonify([dict(username) for username in usernames]), 200
+
+
+""" Delete user """
+@bp.route('/delete-user/<username>', methods=("DELETE",))
+@jwt_required()
+def delete_user(username):
+	try:
+		res = db.delete_user(username)
+		if res is None:
+			raise Exception
+		else:
+			return '', 204
+	except Exception:
+		return jsonify({'error': f"user does not exist: {username}"}), 404
+
+
+""" Add new user """
+@bp.route('/add-user', methods=("POST",))
+@jwt_required()
+def add_user():
+	data = request.get_json()
+	print(data)
+	if not data:
+		return jsonify({'error': 'user data is missing'}), 404
+
+	res = db.add_user(data)
+	print(res, "------------")
+	if res == False:
+		return jsonify({'error': 'user already exists'}), 404
+	elif res is None:
+		return jsonify({'error': 'cannot add user to database because of internal errors'}), 404
 	return '', 204
 
 
