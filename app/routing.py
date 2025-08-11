@@ -41,7 +41,9 @@ def login():
 		return jsonify({'error': 'invalid login data'}), 404
 
 	jwt_token = create_access_token(identity=username)
-	return make_response(jsonify({'access_token': jwt_token}), 200)
+	# _username_ and _admin_ values
+	user_data = dict(db.get_user_data(username))
+	return make_response(jsonify({'access_token': jwt_token, 'user_data': user_data}), 200)
 
 
 """ Index page, does not accept any requests """

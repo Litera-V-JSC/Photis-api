@@ -145,6 +145,15 @@ def get_users():
 	except Exception as e:
 		return None
 
+# get open-to-read user data for login response
+def get_user_data(username):
+	try:
+		db = get_db()
+		return db.execute("SELECT * FROM users WHERE username = ?;", (username,)).fetchone()
+	except Exception:
+		return None
+
+
 
 def delete_category(id):
 	try:
