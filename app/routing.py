@@ -151,14 +151,14 @@ def add_category():
 	return '', 204
 
 
-""" Get all usernames """
-@bp.route('/usernames', methods=("GET",))
+""" Get all users open-to-read data """
+@bp.route('/users', methods=("GET",))
 @jwt_required()
 def usernames():
-	usernames = db.get_usernames()
-	if usernames is None:
+	users = db.get_users()
+	if users is None:
 		return jsonify({'error': 'cannot load usernames from database'}), 404 
-	return jsonify([dict(username) for username in usernames]), 200
+	return jsonify([dict(user) for user in users]), 200
 
 
 """ Delete user """

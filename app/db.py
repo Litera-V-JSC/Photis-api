@@ -128,9 +128,9 @@ def add_user(data):
 			return False
 		db.execute(
 			"INSERT INTO users"
-			"(username, password)"
-			"VALUES (?, ?)",
-			(data['username'].strip(), generate_password_hash(data['password']))
+			"(username, password, admin)"
+			"VALUES (?, ?, ?)",
+			(data['username'].strip(), generate_password_hash(data['password']), data["admin"])
 		)
 		db.commit()
 		return True
@@ -138,10 +138,10 @@ def add_user(data):
 		return None
 
 
-def get_usernames():
+def get_users():
 	try:
 		db = get_db()
-		return db.execute("SELECT username FROM users").fetchall()
+		return db.execute("SELECT username, admin FROM users").fetchall()
 	except Exception as e:
 		return None
 

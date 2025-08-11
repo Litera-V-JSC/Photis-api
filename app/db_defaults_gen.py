@@ -24,12 +24,12 @@ def generate_default_categories(db):
 
 
 def generate_default_users(db, count=4):
-	users = [{"username": f"u{i}", "password": generate_password_hash(f"p{i}")} for i in range(count)]
+	users = [{"username": f"u{i}", "password": generate_password_hash(f"p{i}"), "admin": choice([True, False])} for i in range(count)]
 	for req in users:
 		db.execute(
 			"INSERT INTO users"
-			"(username, password)"
-			"VALUES (?, ?)",
+			"(username, password, admin)"
+			"VALUES (?, ?, ?)",
 			(list(req.values()))
 		)
 		db.commit()
