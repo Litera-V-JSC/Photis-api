@@ -23,8 +23,8 @@ def generate_default_categories(db):
 	print("<== Default categories generated ==>")
 
 
-def generate_default_users(db, count=4):
-	users = [{"username": f"u{i}", "password": generate_password_hash(f"p{i}"), "admin": choice([True, False])} for i in range(count)]
+def generate_default_users(db):
+	users = [{"username": f"user1", "password": generate_password_hash(f"pasw1"), "admin": False}, {"username": f"adm_usr", "password": generate_password_hash(f"adm_pasw"), "admin": True}]
 	for req in users:
 		db.execute(
 			"INSERT INTO users"
