@@ -75,11 +75,9 @@ instance/
 *.sqlite
 *.db
 
-# Scrapy stuff:
-.scrapy
+# Storage media data
+*[0-9].png
 
-# Sphinx documentation
-docs/_build/
 
 # PyBuilder
 .pybuilder/
