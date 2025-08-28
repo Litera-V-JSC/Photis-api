@@ -45,11 +45,10 @@ def get_items(id_list: list):
 
 
 def get_all_items():
-	try:
-		db = get_db()
-		return db.execute("SELECT * FROM items").fetchall()
-	except Exception as e:
-		return None
+
+	db = get_db()
+	return db.execute("SELECT * FROM items").fetchall()
+	
 
 
 def add_item(data):
@@ -199,9 +198,11 @@ def check_user(username, password):
 			"SELECT * FROM users WHERE username = ?;",
 			(username,)
 			).fetchone())
+		print("user:", user)
 		return check_password_hash(user['password'], password)
 	except Exception:
-		return False
+		return None
+	
 		
 
 

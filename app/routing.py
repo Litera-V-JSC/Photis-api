@@ -37,7 +37,7 @@ def refresh_expiring_jwts(response):
 def login():
 	username = request.json.get("username", None)
 	password = request.json.get("password", None)
-	print(username, password)
+
 	if not db.check_user(username, password):
 		return jsonify({'error': 'invalid login data'}), 404
 

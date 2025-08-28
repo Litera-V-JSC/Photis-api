@@ -24,7 +24,7 @@ def generate_default_categories(db):
 
 
 def generate_default_users(db):
-	users = [{"username": f"user1", "password": generate_password_hash(f"pasw1"), "admin": False}, {"username": f"adm_usr", "password": generate_password_hash(f"adm_pasw"), "admin": True}]
+	users = [{"username": f"user1", "password": generate_password_hash(f"pasw1"), "admin": False}, {"username": f"adm_user", "password": generate_password_hash(f"adm_pasw"), "admin": True}]
 	for req in users:
 		db.execute(
 			"INSERT INTO users"
