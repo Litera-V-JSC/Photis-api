@@ -1,4 +1,4 @@
-from flask import g, current_app, jsonify
+from flask import g, current_app
 from werkzeug.security import check_password_hash, generate_password_hash
 import sqlite3
 from lib.file_utils import *
@@ -206,7 +206,7 @@ def check_user(username, password):
 
 
 def init_db(conf):
-	os.makedirs(conf["FILE_STORAGE"], exist_ok=True)
+	os.makedirs(os.path.abspath(conf["FILE_STORAGE"]), exist_ok=True)
 	db = sqlite3.connect(
 		conf["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
 	)

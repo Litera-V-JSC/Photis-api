@@ -1,10 +1,10 @@
 {
 	"DATABASE": "storage/database.sqlite",
-	"LOGGING_CONFIG": "configs/logging.conf",
+	"LOGGING_CONFIG": "logging.conf",
 	"LOGS": "storage/logs",
 	"SCHEMA": "schema.sql",
 	"ALLOWED_EXTENSIONS": ["jpg", "png", "jpeg"],
-	"FILE_STORAGE": "storage",
+	"FILE_STORAGE": "storage/media",
 	"BACKUP": "backup",
 	"DB_CATEGORIES": ["ГСМ топливо", "Товары", "Услуги"]
 }

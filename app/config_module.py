@@ -13,8 +13,8 @@ class Config(object):
 	DATABASE = os.path.abspath(os.path.join(os.path.dirname(__file__), CONFIG_FILE["DATABASE"]))
 	SCHEMA = os.path.join(os.path.dirname(__file__), CONFIG_FILE["SCHEMA"])
 	FILE_STORAGE = os.path.join(os.path.dirname(__file__), CONFIG_FILE["FILE_STORAGE"])
-	LOGGING_CONFIG = os.path.join(os.path.dirname(__file__), CONFIG_FILE["LOGGING_CONFIG"])
-	LOGS = os.path.join(os.path.dirname(__file__), CONFIG_FILE["LOGS"])
+	LOGGING_CONFIG = os.path.abspath(os.path.join(os.path.dirname(__file__), 'configs', CONFIG_FILE["LOGGING_CONFIG"]))
+	LOGS =  os.path.abspath(os.path.join(os.path.dirname(__file__), CONFIG_FILE["LOGS"]))
 	ALLOWED_EXTENSIONS = CONFIG_FILE["ALLOWED_EXTENSIONS"]
 	DB_CATEGORIES = CONFIG_FILE["DB_CATEGORIES"]
 	SECRET_KEY = os.getenv("SECRET_KEY")
