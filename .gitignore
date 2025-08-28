@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Specific local scripts
+db_migrate.py
+
 .python-version
 
 # C extensions
