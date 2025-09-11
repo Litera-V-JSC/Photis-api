@@ -2,17 +2,19 @@ import os
 import logging, logging.config, yaml 
 
 def set_logging(config_path, logs_path):
-	os.makedirs(logs_path, exist_ok=True)
+  print(config_path)
+  print(logs_path)
+  os.makedirs(logs_path, exist_ok=True)
 
-	empty_config = False
-	try:
-		empty_config = os.path.getsize(config_path) == 0
-	except Exception as e:
-		empty_config = True
+  empty_config = False
+  try:
+    empty_config = os.path.getsize(config_path) == 0
+  except Exception as e:
+    empty_config = True
 
-	if empty_config:
-		config = open(config_path, 'w+')
-		config.write(
+  if empty_config:
+    config = open(config_path, 'w+')
+    config.write(
 f"""version: 1
 formatters:
   hiformat:
@@ -42,13 +44,13 @@ loggers:
 root:
   level: DEBUG
   handlers: [console,file] """)
-		config.close()
+    config.close()
 
-	config = open(config_path, 'r+')	
-	logging.config.dictConfig(yaml.safe_load(config))
-	config.close()
+  config = open(config_path, 'r+')	
+  logging.config.dictConfig(yaml.safe_load(config))
+  config.close()
 
-	logfile = logging.getLogger('file')
-	logconsole = logging.getLogger('console')
-	logfile.debug("Application created")
-	logconsole.debug("Application created")
+  logfile = logging.getLogger('file')
+  logconsole = logging.getLogger('console')
+  logfile.debug("Application created")
+  logconsole.debug("Application created")
