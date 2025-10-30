@@ -16,7 +16,7 @@ import datetime
 
 router = Blueprint('routing', __name__)
 
-""" Using an `after_request` callback, we refresh any token that is within 30 """
+""" Using an `after_request` callback, refresh any token that is within 30 """
 @router.after_request
 def refresh_expiring_jwts(response):
 	try:
@@ -67,7 +67,6 @@ def add_item():
 	return '', 204
 
 
-""" Delete item """
 @router.route('/delete-item/<id>', methods=("DELETE",))
 @jwt_required()
 def delete_item(id):
@@ -113,7 +112,7 @@ def download(id):
 	return send_from_directory(storage_path, item["file_name"])
 
 
-""" Get item categories """
+""" Get all available categories """
 @router.route('/categories', methods=("GET",))
 @jwt_required()
 def categories():
@@ -123,7 +122,6 @@ def categories():
 	return jsonify([dict(category) for category in categories]), 200
 
 
-""" Delete category """
 @router.route('/delete-category/<id>', methods=("DELETE",))
 @jwt_required()
 def delete_category(id):
@@ -138,7 +136,6 @@ def delete_category(id):
 		return jsonify({'error': f"Invalid id: {id}"}), 404
 
 
-""" Add new category """
 @router.route('/add-category', methods=("POST",))
 @jwt_required()
 def add_category():
@@ -154,7 +151,7 @@ def add_category():
 	return '', 204
 
 
-""" Get all users open-to-read data """
+""" Get all users available data """
 @router.route('/users', methods=("GET",))
 @jwt_required()
 def usernames():
@@ -164,7 +161,6 @@ def usernames():
 	return jsonify([dict(user) for user in users]), 200
 
 
-""" Delete user """
 @router.route('/delete-user/<username>', methods=("DELETE",))
 @jwt_required()
 def delete_user(username):
@@ -178,7 +174,6 @@ def delete_user(username):
 		return jsonify({'error': f"user does not exist: {username}"}), 404
 
 
-""" Add new user """
 @router.route('/add-user', methods=("POST",))
 @jwt_required()
 def add_user():

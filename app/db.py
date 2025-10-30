@@ -95,11 +95,6 @@ def delete_item(id):
 		db.commit()
 		# if we dont have other items using this file, we remove it
 		if len(items_with_similar_attachment) == 1:
-			print("path:", os.path.join(
-				current_app.root_path, 
-				current_app.config['FILE_STORAGE'], 
-				filename
-			))
 			os.remove(path = os.path.join(
 				current_app.root_path, 
 				current_app.config['FILE_STORAGE'], 
@@ -198,7 +193,6 @@ def check_user(username, password):
 			"SELECT * FROM users WHERE username = ?;",
 			(username,)
 			).fetchone())
-		print("user:", user)
 		return check_password_hash(user['password'], password)
 	except Exception:
 		return None
