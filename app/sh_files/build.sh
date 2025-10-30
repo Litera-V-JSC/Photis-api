@@ -15,12 +15,18 @@ echo "[+] .env file created with SECRET_KEY"
 
 
 # Check if the volume already exists
-if docker volume ls -q | grep -w "$VOLUME_NAME" > /dev/null; then
-  echo "[!] Volume '$VOLUME_NAME' already exists."
-else
-  echo "[+] Creating volume '$VOLUME_NAME'..."
-  docker volume create "$VOLUME_NAME"
-fi
+# if docker volume ls -q | grep -w "$VOLUME_NAME" > /dev/null; then
+#   echo "[!] Volume '$VOLUME_NAME' already exists."
+# else
+#   echo "[+] Creating volume '$VOLUME_NAME'..."
+#   docker volume create "$VOLUME_NAME"
+# fi
+
+docker image rm $IMAGE_NAME
+docker volume rm photis
+
+echo "[+] Creating volume '$VOLUME_NAME'..."
+docker volume create "$VOLUME_NAME"
 
 docker build . -t $IMAGE_NAME
 echo "[+] Container build finished."

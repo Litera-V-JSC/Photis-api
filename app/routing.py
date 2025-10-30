@@ -14,10 +14,10 @@ import os
 import datetime
 
 
-bp = Blueprint('routing', __name__)
+router = Blueprint('routing', __name__)
 
 """ Using an `after_request` callback, we refresh any token that is within 30 """
-@bp.after_request
+@router.after_request
 def refresh_expiring_jwts(response):
 	try:
 		exp_timestamp = get_jwt()["exp"]
@@ -33,7 +33,7 @@ def refresh_expiring_jwts(response):
 
 
 """ Auth to get JWT token with password"""
-@bp.route('/login', methods=("GET", "POST"))
+@router.route('/login', methods=("GET", "POST"))
 def login():
 	username = request.json.get("username", None)
 	password = request.json.get("password", None)
@@ -48,13 +48,13 @@ def login():
 
 
 """ Index page, does not accept any requests """
-@bp.route('/', methods=("GET", "POST"))
+@router.route('/', methods=("GET", "POST"))
 def index():
 	return abort(400)
 
 
 """ Add item and save image to storage """
-@bp.route('/add-item', methods=("POST",))
+@router.route('/add-item', methods=("POST",))
 @jwt_required()
 def add_item():
 	data = request.get_json()
@@ -68,7 +68,7 @@ def add_item():
 
 
 """ Delete item """
-@bp.route('/delete-item/<id>', methods=("DELETE",))
+@router.route('/delete-item/<id>', methods=("DELETE",))
 @jwt_required()
 def delete_item(id):
 	try:
@@ -87,7 +87,7 @@ Get item by its id or list of all available items
 id=all - list of all items; 
 id=<id:int> - only one item with unique id
 """
-@bp.route('/item/<id>', methods=("GET",))
+@router.route('/item/<id>', methods=("GET",))
 @jwt_required()
 def get_item(id):
 	if str(id) == "all":
@@ -103,7 +103,7 @@ def get_item(id):
 
 
 """ Get item image """
-@bp.route('/files/<int:id>', methods=("GET",))
+@router.route('/files/<int:id>', methods=("GET",))
 @jwt_required()
 def download(id):
 	item = db.get_items([id])[0]
@@ -114,7 +114,7 @@ def download(id):
 
 
 """ Get item categories """
-@bp.route('/categories', methods=("GET",))
+@router.route('/categories', methods=("GET",))
 @jwt_required()
 def categories():
 	categories = db.get_categories()
@@ -124,7 +124,7 @@ def categories():
 
 
 """ Delete category """
-@bp.route('/delete-category/<id>', methods=("DELETE",))
+@router.route('/delete-category/<id>', methods=("DELETE",))
 @jwt_required()
 def delete_category(id):
 	try:
@@ -139,7 +139,7 @@ def delete_category(id):
 
 
 """ Add new category """
-@bp.route('/add-category', methods=("POST",))
+@router.route('/add-category', methods=("POST",))
 @jwt_required()
 def add_category():
 	data = request.get_json()
@@ -155,7 +155,7 @@ def add_category():
 
 
 """ Get all users open-to-read data """
-@bp.route('/users', methods=("GET",))
+@router.route('/users', methods=("GET",))
 @jwt_required()
 def usernames():
 	users = db.get_users()
@@ -165,7 +165,7 @@ def usernames():
 
 
 """ Delete user """
-@bp.route('/delete-user/<username>', methods=("DELETE",))
+@router.route('/delete-user/<username>', methods=("DELETE",))
 @jwt_required()
 def delete_user(username):
 	try:
@@ -179,16 +179,14 @@ def delete_user(username):
 
 
 """ Add new user """
-@bp.route('/add-user', methods=("POST",))
+@router.route('/add-user', methods=("POST",))
 @jwt_required()
 def add_user():
 	data = request.get_json()
-	print(data)
 	if not data:
 		return jsonify({'error': 'user data is missing'}), 404
 
 	res = db.add_user(data)
-	print(res, "------------")
 	if res == False:
 		return jsonify({'error': 'user already exists'}), 404
 	elif res is None:
@@ -197,7 +195,7 @@ def add_user():
 
 
 """ Generate report """
-@bp.route('/report', methods=("GET",))
+@router.route('/report', methods=("GET",))
 @jwt_required()
 def report():
 	filename = "report " + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.pdf'

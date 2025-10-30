@@ -28,7 +28,7 @@ def generate_default_categories(db):
 
 def generate_default_users(db):
 	try:
-		users = [{"username": f"usr1", "password": generate_password_hash("pasw1"), "admin": False}, {"username": "adm_usr", "password": generate_password_hash("adm_pasw"), "admin": True}]
+		users = [{"username": f"usr1", "password": generate_password_hash("pasw1"), "admin": False}, {"username": "admin", "password": generate_password_hash("admin"), "admin": True}]
 		for req in users:
 			db.execute(
 				"INSERT INTO users"
@@ -42,7 +42,7 @@ def generate_default_users(db):
 		print("! Skipping generation: Users table is not empty")
 
 
-def generate_default_items(db, count=25):
+def generate_default_items(db, count=5):
 	try:
 		# skip generation if table already has default items - needed because item table has no unique fields
 		if len(db.execute("SELECT * FROM items").fetchall()) > 0:
