@@ -21,9 +21,9 @@ def generate_default_categories(db):
 				(cat,)
 			)
 			db.commit()
-		print("<== Default categories generated ==>")
+		print("<== Default categories inserted")
 	except sqlite3.IntegrityError:
-		print("! Skipping generation: Categories table is not empty")
+		print("Skipping generation: Categories table is not empty")
 
 
 def generate_default_users(db):
@@ -37,9 +37,9 @@ def generate_default_users(db):
 				(list(req.values()))
 			)
 			db.commit()
-		print("<== Default users generated ==>")
+		print("<== Default users inserted")
 	except sqlite3.IntegrityError:
-		print("! Skipping generation: Users table is not empty")
+		print("Skipping generation: Users table is not empty")
 
 
 def generate_default_items(db, count=5):
@@ -50,8 +50,9 @@ def generate_default_items(db, count=5):
 
 		categories = ["ГСМ топливо", "Товары", "Услуги"]
 		dates = ["2025-07-"+f"{day}".zfill(2) for day in range(1, 31)]
+		images = ["sample_" + str(i+1) + '.png' for i in range(count)]
 		items = [
-			{"category": choice(categories), "sum": randint(100, 4242), "creation_date": choice(dates), "file_name": "sample.png"} for _ in range(count)
+			{"category": choice(categories), "sum": randint(100, 4242), "creation_date": choice(dates), "file_name": images[i]} for i in range(count)
 		]
 		for item in items:
 			db.execute(
@@ -61,29 +62,38 @@ def generate_default_items(db, count=5):
 				(list(item.values()))
 			)
 			db.commit()
-		print("<== Default items generated ==>")
+		print("<== Default items inserted")
 	except sqlite3.IntegrityError:
-		print("! Skipping generation: Item table is not empty")
+		print("Skipping generation: Item table is not empty")
 
 
 def generate_defaults():
-	non_exist = False
-	if not os.path.exists(conf.DATABASE):
-		non_exist = True
-
 	db = sqlite3.connect(
 		conf.DATABASE, detect_types=sqlite3.PARSE_DECLTYPES
 	)
-	if non_exist:
-		cur = db.cursor()
-		with open(conf.SCHEMA) as schema:
-			cur.executescript(schema.read()) 
+	cur = db.cursor()
+	with open(conf.SCHEMA) as schema:
+		cur.executescript(schema.read()) 
 
 	generate_default_users(db)
 	generate_default_items(db)
 	generate_default_categories(db)
-	print("<== Database initialized ==>")
+	print("Complete !")
 
 
 if __name__ == "__main__":
-	generate_defaults()
+	print("This script resets existing database file / creates new one, then fills inserts test data.")
+
+	if os.path.exists(conf.DATABASE):
+		confirm = input("Database file exists. Do you want to rewrite it ? (y / n): ").strip().lower()
+		try:
+			if confirm[0] == 'y':
+				os.remove(conf.DATABASE)
+				print(f"Removed db file: {conf.DATABASE}")
+				generate_defaults()
+			else:
+				raise Exception
+		except Exception:
+			print("Cancelling operation")
+	else:
+		generate_defaults()

@@ -67,15 +67,17 @@ def create_pdf(storage_dir, file_path, raw_table_data):
 	table_data = []
 	sum_values = 0.0
 	sums_list = []
+	images_paths = list()
+
 	for row in raw_table_data:
 		sum_val = float(row['sum'])
 		sums_list.append(sum_val)
 		sum_values += sum_val
-		table_data.append([convert_date_format(row['creation_date']), row['category'], f"{sum_val:.2f}"])
+		images_paths.append(os.path.join(storage_dir, row['file_name']))
+		table_data.append([convert_date_format(row['creation_date']), row['category'], f"{sum_val:.2f}", row['file_name']])
 
-	data = [["Дата выдачи", "Категория", "Сумма"]] + table_data
-
-	# Create table flowable
+	# Create table
+	data = [["Дата выдачи", "Категория", "Сумма", "Изображение"]] + table_data
 	table = create_table(data)
 
 	# Prepare stats text as Paragraphs
@@ -85,8 +87,8 @@ def create_pdf(storage_dir, file_path, raw_table_data):
 	min_sum = min(sums_list) if sums_list else 0
 
 	stats_lines = [
-		f"Итоговая сумма: {sum_values:,.2f}",
 		f"Количество: {count}",
+		f"Итоговая сумма: {sum_values:,.2f}",
 		f"Средняя сумма: {avg_sum:,.2f}",
 		f"Максимальная сумма: {max_sum:,.2f}",
 		f"Минимальная сумма: {min_sum:,.2f}",
@@ -99,27 +101,25 @@ def create_pdf(storage_dir, file_path, raw_table_data):
 		p = Paragraph(line, styles["Cyrillic"])
 		story.append(p)
 
-	# --- Add all images from /storage directory ---
-	supported_extensions = ['.jpg', '.jpeg', '.png']
-	if os.path.isdir(storage_dir):
-		images = [
-			f for f in sorted(os.listdir(storage_dir))
-			if os.path.splitext(f.lower())[1] in supported_extensions
-		]
-		for img_name in images:
-			img_path = os.path.join(storage_dir, img_name)
-			try:
-				story.append(PageBreak())
-				# Fit image into A4 with margins: safe width/height for portrait A4
-				max_width, max_height = A4[0] - 80, A4[1] - 120
-				img = Image(img_path)
-				# Resize proportionally
-				img.drawWidth, img.drawHeight = _fit_image(img_path, max_width, max_height)
-				story.append(img)
-				story.append(Spacer(1, 12))
-				story.append(Paragraph(os.path.basename(img_path), styles["Cyrillic"]))
-			except Exception as e:
-				story.append(Paragraph(f"Ошибка с изображением: {img_name} ({e})", styles["Cyrillic"]))
+	# --- Add images of items ---
+	used_image_paths = list()
+	for img_path in images_paths:
+		if img_path in used_image_paths:
+			continue
+			
+		used_image_paths.append(img_path)
+		try:
+			story.append(PageBreak())
+			# Fit image into A4 with margins: safe width/height for portrait A4
+			max_width, max_height = A4[0] - 80, A4[1] - 120
+			img = Image(img_path)
+			# Resize proportionally
+			img.drawWidth, img.drawHeight = _fit_image(img_path, max_width, max_height)
+			story.append(img)
+			story.append(Spacer(1, 12))
+			story.append(Paragraph(os.path.basename(img_path), styles["Cyrillic"]))
+		except Exception as e:
+			story.append(Paragraph(f"Ошибка с изображением: {img_path} ({e})", styles["Cyrillic"]))
 
 	# Build PDF with the correct page headers and numbers
 	doc.build(
