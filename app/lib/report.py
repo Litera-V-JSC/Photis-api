@@ -127,7 +127,7 @@ def create_pdf(storage_dir, file_path, raw_table_data):
 		onFirstPage=lambda canvas, doc: (draw_first_page_header(canvas, doc), draw_page_number(canvas, doc)),
 		onLaterPages=lambda canvas, doc: (draw_later_page_placeholder(canvas, doc), draw_page_number(canvas, doc))
 	)
-	print(f"PDF report created: {file_path}")
+	
 
 # Add proportional image resizing
 from PIL import Image as PIL_Image

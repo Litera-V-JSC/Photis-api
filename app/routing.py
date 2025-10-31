@@ -1,4 +1,4 @@
-from flask import abort, Blueprint, request, current_app, send_from_directory, jsonify, make_response
+from flask import abort, Blueprint, request, current_app, send_from_directory, jsonify, make_response, after_this_request
 
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt
@@ -203,4 +203,14 @@ def report():
 		items
 	)
 	storage_path = os.path.join(current_app.root_path, current_app.config['FILE_STORAGE'])
+
+	@after_this_request
+	def remove_file(response):
+		try:
+			os.remove(os.path.join(storage_path, filename))
+		except Exception as e:
+			pass
+		return response
+
 	return send_from_directory(storage_path, filename)
+
